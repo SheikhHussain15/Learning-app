@@ -38,4 +38,4 @@ A modern learning platform powered by AI.
 
 - Node.js 18+
 - Python 3.11+
-- Docker (for PostgreSQL)
+- Docker (for PostgreSQL)"# Learning" 
