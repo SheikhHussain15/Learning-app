@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RequestEnvelope",
+  "description": "Standardized input contract shared by all AI agents",
+  "type": "object",
+  "required": ["document_id", "node_ids", "agent_params", "trace_id"],
+  "properties": {
+    "document_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID of the source document"
+    },
+    "node_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "minItems": 0,
+      "description": "Ordered list of knowledge graph node IDs"
+    },
+    "agent_params": {
+      "type": "object",
+      "description": "Agent-specific parameters (e.g., quiz_count, target_language)",
+      "additionalProperties": true
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "chunks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/RetrievedChunk" }
+        },
+        "source_doc_id": { "type": "string", "format": "uuid" },
+        "previous_agent_output": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "Langfuse trace ID for observability linkage",
+      "minLength": 1
+    },
+    "envelope_version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Envelope schema version for evolution tracking"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "RetrievedChunk": {
+      "type": "object",
+      "required": ["chunk_id", "text", "score"],
+      "properties": {
+        "chunk_id": { "type": "string" },
+        "text": { "type": "string" },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "metadata": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    }
+  }
+}

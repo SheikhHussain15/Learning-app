@@ -1,0 +1,344 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Learning Workspace API",
+    "version": "1.0.0",
+    "description": "API for Learning Workspace endpoints"
+  },
+  "paths": {
+    "/workspace/{documentId}": {
+      "get": {
+        "summary": "Get workspace overview",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{documentId}/sections": {
+      "get": {
+        "summary": "Get all sections for document",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceSection"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{documentId}/sections/{sectionType}/request": {
+      "post": {
+        "summary": "Request AI generation for section",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sectionType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["summary", "explanation", "translation", "diagram", "quiz", "flashcard", "revision_notes"]
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Generation request accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionRequestResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{documentId}/sections/{sectionType}/status": {
+      "get": {
+        "summary": "Get section processing status",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sectionType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["summary", "explanation", "translation", "diagram", "quiz", "flashcard", "revision_notes"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Section status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspace/{documentId}/sections/{sectionType}/content": {
+      "get": {
+        "summary": "Get section content",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sectionType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["summary", "explanation", "translation", "diagram", "quiz", "flashcard", "revision_notes"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Section content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionContent"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkspaceOverview": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "chapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Chapter"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceSection"
+            }
+          }
+        }
+      },
+      "Chapter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Topic"
+            }
+          }
+        }
+      },
+      "Topic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "chapter_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "WorkspaceSection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "section_type": {
+            "type": "string",
+            "enum": ["summary", "explanation", "translation", "diagram", "quiz", "flashcard", "revision_notes"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["not_requested", "processing", "failed", "completed"]
+          },
+          "content": {
+            "type": "object"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SectionRequestResponse": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["processing"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SectionStatus": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["not_requested", "processing", "failed", "completed"]
+          },
+          "progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "error_message": {
+            "type": "string"
+          }
+        }
+      },
+      "SectionContent": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "section_type": {
+            "type": "string"
+          },
+          "content": {
+            "type": "object"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

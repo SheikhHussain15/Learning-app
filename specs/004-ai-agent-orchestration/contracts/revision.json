@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RevisionOutput",
+  "description": "Output schema for Revision agent",
+  "type": "object",
+  "required": ["notes", "flashcards"],
+  "properties": {
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "note_text", "key_formulas", "source_chunk_ids"],
+        "properties": {
+          "node_id": { "type": "string" },
+          "note_text": { "type": "string" },
+          "key_formulas": { "type": "array", "items": { "type": "string" } },
+          "source_chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "flashcards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["front", "back", "difficulty", "category", "source_chunk_ids"],
+        "properties": {
+          "front": { "type": "string" },
+          "back": { "type": "string" },
+          "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+          "category": { "type": "string" },
+          "source_chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

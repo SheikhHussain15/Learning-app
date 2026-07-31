@@ -1,0 +1,364 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Dashboard API",
+    "version": "1.0.0",
+    "description": "API for Learning Dashboard endpoints"
+  },
+  "paths": {
+    "/dashboard": {
+      "get": {
+        "summary": "Get dashboard data",
+        "responses": {
+          "200": {
+            "description": "Dashboard data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/recent-activity": {
+      "get": {
+        "summary": "Get recent learning activity",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recent activity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActivityItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/statistics": {
+      "get": {
+        "summary": "Get learning statistics",
+        "responses": {
+          "200": {
+            "description": "Learning statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningStatistics"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/progress": {
+      "get": {
+        "summary": "Get study progress",
+        "responses": {
+          "200": {
+            "description": "Study progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyProgress"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/streak": {
+      "get": {
+        "summary": "Get learning streak",
+        "responses": {
+          "200": {
+            "description": "Learning streak",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningStreak"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/recommendations": {
+      "get": {
+        "summary": "Get personalized recommendations",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recommendations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Recommendation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/recently-viewed": {
+      "get": {
+        "summary": "Get recently viewed documents",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recently viewed documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecentlyViewedDocument"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DashboardData": {
+        "type": "object",
+        "properties": {
+          "recent_activity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityItem"
+            }
+          },
+          "statistics": {
+            "$ref": "#/components/schemas/LearningStatistics"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/StudyProgress"
+          },
+          "streak": {
+            "$ref": "#/components/schemas/LearningStreak"
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recommendation"
+            }
+          },
+          "recently_viewed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecentlyViewedDocument"
+            }
+          }
+        }
+      },
+      "ActivityItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": ["quiz_completed", "flashcard_reviewed", "chapter_completed", "reading_progress", "tutor_used", "diagram_interacted", "revision_completed"]
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document_title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LearningStatistics": {
+        "type": "object",
+        "properties": {
+          "total_study_time": {
+            "type": "integer",
+            "description": "Total study time in seconds"
+          },
+          "documents_studied": {
+            "type": "integer"
+          },
+          "quizzes_completed": {
+            "type": "integer"
+          },
+          "average_quiz_score": {
+            "type": "number"
+          },
+          "flashcards_reviewed": {
+            "type": "integer"
+          },
+          "tutor_conversations": {
+            "type": "integer"
+          }
+        }
+      },
+      "StudyProgress": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentProgress"
+            }
+          },
+          "overall_progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      },
+      "DocumentProgress": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "last_studied": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LearningStreak": {
+        "type": "object",
+        "properties": {
+          "current_streak": {
+            "type": "integer",
+            "description": "Current consecutive days of learning"
+          },
+          "longest_streak": {
+            "type": "integer",
+            "description": "Longest consecutive days of learning"
+          },
+          "last_activity_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "streak_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Recommendation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recommendation_type": {
+            "type": "string",
+            "enum": ["document", "quiz", "flashcard", "review"]
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        }
+      },
+      "RecentlyViewedDocument": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "last_viewed": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

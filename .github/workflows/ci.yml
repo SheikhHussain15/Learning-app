@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Ruff
+        run: pip install ruff
+      - name: Run Ruff lint
+        run: ruff check app/backend/src/
+      - name: Run Ruff format check
+        run: ruff format --check app/backend/src/
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: app/frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: app/frontend
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: app/frontend
+      - name: Run TypeScript check
+        run: npm run typecheck
+        working-directory: app/frontend
+
+  type-checking:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: app/frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: app/frontend
+      - name: Run TypeScript check
+        run: npm run typecheck
+        working-directory: app/frontend
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: app/backend
+      - name: Run unit tests with coverage
+        run: pytest tests/unit/ -v --cov=src --cov-report=xml --cov-fail-under=80
+        working-directory: app/backend
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: app/backend/coverage.xml
+
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: app/backend
+      - name: Run contract tests
+        run: pytest tests/contract/ -v
+        working-directory: app/backend
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        working-directory: app/backend
+      - name: Run integration tests
+        run: pytest tests/integration/ -v
+        working-directory: app/backend
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [code-quality, frontend-lint, type-checking, unit-tests, contract-tests, integration-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build frontend
+        run: npm ci && npm run build
+        working-directory: app/frontend
+      - name: Build backend Docker image
+        run: docker build -t ai-learning-backend:ci -f app/backend/Dockerfile app/backend
+
+  security-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [code-quality]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Bandit
+        run: pip install bandit
+      - name: Run Bandit security scan
+        run: bandit -r app/backend/src/ -ll --ini app/backend/.bandit
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: app/frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: app/frontend
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: app/frontend
+      - name: Run E2E tests
+        run: npm run test:e2e
+        working-directory: app/frontend

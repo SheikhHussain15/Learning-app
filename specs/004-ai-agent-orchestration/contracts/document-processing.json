@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DocumentProcessingOutput",
+  "description": "Output schema for Document Processing agent",
+  "type": "object",
+  "required": ["raw_text", "chunks", "metadata", "language"],
+  "properties": {
+    "raw_text": {
+      "type": "string",
+      "description": "Full cleaned text extracted from the document"
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["chunk_id", "text", "position"],
+        "properties": {
+          "chunk_id": { "type": "string" },
+          "text": { "type": "string" },
+          "position": { "type": "integer", "minimum": 0 },
+          "page_number": { "type": "integer", "nullable": true },
+          "section_header": { "type": "string", "nullable": true }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "format": { "type": "string" },
+        "character_count": { "type": "integer" },
+        "word_count": { "type": "integer" }
+      }
+    },
+    "language": { "type": "string" },
+    "page_count": { "type": "integer" }
+  }
+}

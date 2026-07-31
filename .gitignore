@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database
+*.db
+*.sqlite
+
+# Docker
+.dockerignore
+
+# Testing
+coverage/
+htmlcov/
+.pytest_cache/
+playwright-report/
+test-results/
+
+# Ruff
+.ruff_cache/
+
+# Build artifacts
+*.egg-info/
+*.egg

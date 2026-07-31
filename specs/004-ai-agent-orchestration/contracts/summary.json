@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SummaryOutput",
+  "description": "Output schema for Summary agent",
+  "type": "object",
+  "required": ["summaries", "overall_summary"],
+  "properties": {
+    "summaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "summary_text", "key_points", "source_chunk_ids"],
+        "properties": {
+          "node_id": { "type": "string" },
+          "summary_text": { "type": "string" },
+          "key_points": { "type": "array", "items": { "type": "string" } },
+          "source_chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "overall_summary": { "type": "string" }
+  }
+}

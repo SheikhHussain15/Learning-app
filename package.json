@@ -1,0 +1,17 @@
+{
+  "name": "ai-learning-platform",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd app/frontend && npm run dev",
+    "dev:backend": "cd app/backend && uvicorn src.main:app --reload",
+    "build": "cd app/frontend && npm run build",
+    "start": "cd app/frontend && npm run start",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "install": "cd app/frontend && npm install && cd ../backend && pip install -r requirements.txt"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

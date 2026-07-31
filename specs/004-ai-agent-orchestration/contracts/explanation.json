@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExplanationOutput",
+  "description": "Output schema for Explanation agent",
+  "type": "object",
+  "required": ["explanations"],
+  "properties": {
+    "explanations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["concept", "explanation", "examples", "complexity_level", "source_chunk_ids"],
+        "properties": {
+          "concept": { "type": "string" },
+          "explanation": { "type": "string" },
+          "examples": { "type": "array", "items": { "type": "string" } },
+          "complexity_level": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+          "source_chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

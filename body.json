@@ -1,0 +1,11 @@
+{
+  "agent_type": "echo",
+  "document_id": "550e8400-e29b-41d4-a716-446655440000",
+  "node_ids": ["550e8400-e29b-41d4-a716-446655440001"],
+  "agent_params": {"test": true},
+  "context": {
+    "chunks": [
+      {"chunk_id": "chunk-1", "text": "Test content", "score": 0.95, "metadata": {}}
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KnowledgeStructuringOutput",
+  "description": "Output schema for Knowledge Structuring agent",
+  "type": "object",
+  "required": ["nodes", "relationships"],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "node_type", "title", "content", "position", "chunk_ids"],
+        "properties": {
+          "node_id": { "type": "string" },
+          "node_type": { "type": "string", "enum": ["chapter", "topic", "subtopic"] },
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "parent_id": { "type": "string", "nullable": true },
+          "position": { "type": "integer", "minimum": 0 },
+          "chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "target_id", "relationship_type"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "target_id": { "type": "string" },
+          "relationship_type": { "type": "string", "enum": ["contains", "related_to", "depends_on"] }
+        }
+      }
+    }
+  }
+}

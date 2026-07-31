@@ -1,0 +1,341 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Flashcard API",
+    "version": "1.0.0",
+    "description": "API for Flashcard Review endpoints"
+  },
+  "paths": {
+    "/flashcards/{documentId}": {
+      "get": {
+        "summary": "Get flashcard deck for document",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Flashcard deck",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlashcardDeck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flashcards/{documentId}/review": {
+      "get": {
+        "summary": "Get cards for review (spaced repetition)",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cards due for review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Flashcard"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flashcards/{flashcardId}/review": {
+      "post": {
+        "summary": "Submit flashcard review",
+        "parameters": [
+          {
+            "name": "flashcardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlashcardReviewSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlashcardReviewResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flashcards/{documentId}/progress": {
+      "get": {
+        "summary": "Get flashcard review progress",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlashcardProgress"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flashcards/{documentId}/history": {
+      "get": {
+        "summary": "Get review history",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlashcardReviewHistory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FlashcardDeck": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "total_cards": {
+            "type": "integer"
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Flashcard"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Flashcard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "front": {
+            "type": "string",
+            "description": "Question or prompt"
+          },
+          "back": {
+            "type": "string",
+            "description": "Answer or explanation"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "next_review_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "review_count": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FlashcardReviewSubmission": {
+        "type": "object",
+        "required": ["difficulty"],
+        "properties": {
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"]
+          },
+          "review_duration": {
+            "type": "integer",
+            "description": "Time spent on card in seconds"
+          }
+        }
+      },
+      "FlashcardReviewResult": {
+        "type": "object",
+        "properties": {
+          "flashcard_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"]
+          },
+          "next_review_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "review_count": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "FlashcardProgress": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "total_cards": {
+            "type": "integer"
+          },
+          "reviewed_today": {
+            "type": "integer"
+          },
+          "due_for_review": {
+            "type": "integer"
+          },
+          "mastered": {
+            "type": "integer",
+            "description": "Cards with 5+ successful reviews"
+          },
+          "learning": {
+            "type": "integer",
+            "description": "Cards with 1-4 successful reviews"
+          },
+          "new_cards": {
+            "type": "integer",
+            "description": "Cards not yet reviewed"
+          }
+        }
+      },
+      "FlashcardReviewHistory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "flashcard_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"]
+          },
+          "review_duration": {
+            "type": "integer"
+          },
+          "next_review_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,260 @@
+openapi: 3.1.0
+info:
+  title: Production Infrastructure API
+  version: 1.0.0
+  description: API contracts for production infrastructure endpoints
+
+paths:
+  /api/v1/health:
+    get:
+      summary: System health check
+      tags: [Health]
+      responses:
+        '200':
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: System degraded or unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/health/{component}:
+    get:
+      summary: Component-specific health check
+      tags: [Health]
+      parameters:
+        - name: component
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [frontend, backend, database, chromadb, langfuse]
+      responses:
+        '200':
+          description: Component healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentHealth'
+        '503':
+          description: Component unhealthy
+
+  /api/v1/deploy/status:
+    get:
+      summary: Current deployment status
+      tags: [Deployment]
+      responses:
+        '200':
+          description: Deployment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentStatus'
+
+  /api/v1/deploy/rollback:
+    post:
+      summary: Trigger rollback to previous version
+      tags: [Deployment]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '202':
+          description: Rollback initiated
+        '400':
+          description: No previous version to rollback to
+
+  /api/v1/security/audit-log:
+    get:
+      summary: Retrieve security audit logs
+      tags: [Security]
+      parameters:
+        - name: event_type
+          in: query
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLogEntry'
+
+  /api/v1/testing/results:
+    get:
+      summary: Retrieve test suite results
+      tags: [Testing]
+      parameters:
+        - name: suite_type
+          in: query
+          schema:
+            type: string
+            enum: [unit, contract, integration, e2e]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Test results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestResult'
+
+  /api/v1/testing/run:
+    post:
+      summary: Trigger test suite execution
+      tags: [Testing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                suite_type:
+                  type: string
+                  enum: [unit, contract, integration, e2e, all]
+                parallel:
+                  type: boolean
+                  default: true
+      responses:
+        '202':
+          description: Test run initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestRunResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComponentHealth'
+
+    ComponentHealth:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        latency_ms:
+          type: integer
+        error:
+          type: string
+          nullable: true
+
+    DeploymentStatus:
+      type: object
+      properties:
+        current_version:
+          type: string
+        environment:
+          type: string
+          enum: [staging, production]
+        deployed_at:
+          type: string
+          format: date-time
+        deployed_by:
+          type: string
+        rollback_available:
+          type: boolean
+
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+        user_id:
+          type: string
+        ip_address:
+          type: string
+        details:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    TestResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        suite_type:
+          type: string
+        total_tests:
+          type: integer
+        passed:
+          type: integer
+        failed:
+          type: integer
+        coverage_percent:
+          type: number
+        duration_seconds:
+          type: integer
+        run_at:
+          type: string
+          format: date-time
+        commit_sha:
+          type: string
+
+    TestRunResponse:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        estimated_duration_seconds:
+          type: integer

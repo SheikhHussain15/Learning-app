@@ -1,0 +1,327 @@
+openapi: 3.0.3
+info:
+  title: AI Learning Platform — Agent Orchestration API
+  version: 1.0.0
+  description: Endpoints for AI agent orchestration — Phase 3 (AI Infrastructure)
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+
+paths:
+  /agents/{agent_type}/invoke:
+    post:
+      summary: Invoke an AI agent via the Orchestrator
+      operationId: invokeAgent
+      parameters:
+        - name: agent_type
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AgentType'
+          description: Type of agent to invoke
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokeRequest'
+      responses:
+        '200':
+          description: Agent completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvokeResponse'
+        '202':
+          description: Agent invocation accepted (async mode)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvokeAccepted'
+        '400':
+          description: Invalid request (contract validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Orchestration failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /agent-runs/{run_id}:
+    get:
+      summary: Get AgentRun execution status and result
+      operationId: getAgentRun
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: AgentRun details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRunResponse'
+        '404':
+          description: AgentRun not found
+
+  /agent-runs:
+    get:
+      summary: List AgentRun records
+      operationId: listAgentRuns
+      parameters:
+        - name: agent_type
+          in: query
+          schema:
+            $ref: '#/components/schemas/AgentType'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AgentStatus'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of AgentRun records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentRunResponse'
+
+  /health:
+    get:
+      summary: Health check for AI infrastructure
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Infrastructure status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded]
+                  components:
+                    type: object
+                    properties:
+                      openrouter:
+                        type: string
+                        enum: [ok, error]
+                      chromadb:
+                        type: string
+                        enum: [ok, error]
+                      langfuse:
+                        type: string
+                        enum: [ok, error, disabled]
+
+components:
+  schemas:
+    AgentType:
+      type: string
+      enum: [echo, summary, quiz, translation, diagram, revision, recommendation]
+
+    AgentStatus:
+      type: string
+      enum: [queued, running, succeeded, failed, cancelled]
+
+    InvokeRequest:
+      type: object
+      required: [document_id, node_ids, agent_params]
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        node_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        agent_params:
+          type: object
+          additionalProperties: true
+        context:
+          type: object
+          properties:
+            chunks:
+              type: array
+              items:
+                $ref: '#/components/schemas/RetrievedChunk'
+            source_doc_id:
+              type: string
+              format: uuid
+            previous_agent_output:
+              type: object
+              additionalProperties: true
+
+    RetrievedChunk:
+      type: object
+      required: [chunk_id, text, score]
+      properties:
+        chunk_id:
+          type: string
+        text:
+          type: string
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+        metadata:
+          type: object
+          additionalProperties: true
+
+    InvokeResponse:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+        response:
+          $ref: '#/components/schemas/ResponseEnvelope'
+        duration_ms:
+          type: integer
+          nullable: true
+
+    InvokeAccepted:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued]
+        polling_url:
+          type: string
+          format: uri
+
+    ResponseEnvelope:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error, partial]
+        output:
+          type: object
+          additionalProperties: true
+        source_refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceRef'
+        usage:
+          $ref: '#/components/schemas/TokenUsage'
+        error:
+          oneOf:
+            - $ref: '#/components/schemas/ErrorInfo'
+            - type: 'null'
+
+    SourceRef:
+      type: object
+      required: [chunk_id, document_id]
+      properties:
+        chunk_id:
+          type: string
+        document_id:
+          type: string
+          format: uuid
+        node_id:
+          type: string
+          format: uuid
+
+    TokenUsage:
+      type: object
+      required: [prompt_tokens, completion_tokens, total_tokens]
+      properties:
+        prompt_tokens:
+          type: integer
+          minimum: 0
+        completion_tokens:
+          type: integer
+          minimum: 0
+        total_tokens:
+          type: integer
+          minimum: 0
+
+    ErrorInfo:
+      type: object
+      required: [code, message, retryable]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        retryable:
+          type: boolean
+
+    AgentRunResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        agent_type:
+          $ref: '#/components/schemas/AgentType'
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+        response_envelope:
+          oneOf:
+            - $ref: '#/components/schemas/ResponseEnvelope'
+            - type: 'null'
+        error:
+          oneOf:
+            - $ref: '#/components/schemas/ErrorInfo'
+            - type: 'null'
+        duration_ms:
+          type: integer
+          nullable: true
+        retry_count:
+          type: integer
+        model_used:
+          type: string
+          nullable: true
+        fallback_used:
+          type: boolean
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorInfo'
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string

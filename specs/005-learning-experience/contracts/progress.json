@@ -1,0 +1,273 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Progress API",
+    "version": "1.0.0",
+    "description": "API for Progress Tracking endpoints"
+  },
+  "paths": {
+    "/progress/events": {
+      "post": {
+        "summary": "Record progress event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Event recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressEvent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/progress/events": {
+      "get": {
+        "summary": "Get progress events",
+        "parameters": [
+          {
+            "name": "event_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["quiz_completed", "flashcard_reviewed", "chapter_completed", "reading_progress", "tutor_used", "diagram_interacted", "revision_completed"]
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from_date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of progress events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProgressEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/progress/summary": {
+      "get": {
+        "summary": "Get progress summary",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Progress summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/progress/streak": {
+      "get": {
+        "summary": "Get learning streak",
+        "responses": {
+          "200": {
+            "description": "Learning streak",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningStreak"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProgressEventInput": {
+        "type": "object",
+        "required": ["event_type"],
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": ["quiz_completed", "flashcard_reviewed", "chapter_completed", "reading_progress", "tutor_used", "diagram_interacted", "revision_completed"]
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "section_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_data": {
+            "type": "object",
+            "description": "Event-specific data"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Duration in seconds"
+          }
+        }
+      },
+      "ProgressEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": ["quiz_completed", "flashcard_reviewed", "chapter_completed", "reading_progress", "tutor_used", "diagram_interacted", "revision_completed"]
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "section_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_data": {
+            "type": "object"
+          },
+          "duration": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProgressSummary": {
+        "type": "object",
+        "properties": {
+          "total_events": {
+            "type": "integer"
+          },
+          "total_study_time": {
+            "type": "integer",
+            "description": "Total study time in seconds"
+          },
+          "events_by_type": {
+            "type": "object",
+            "properties": {
+              "quiz_completed": {
+                "type": "integer"
+              },
+              "flashcard_reviewed": {
+                "type": "integer"
+              },
+              "chapter_completed": {
+                "type": "integer"
+              },
+              "reading_progress": {
+                "type": "integer"
+              },
+              "tutor_used": {
+                "type": "integer"
+              },
+              "diagram_interacted": {
+                "type": "integer"
+              },
+              "revision_completed": {
+                "type": "integer"
+              }
+            }
+          },
+          "documents_studied": {
+            "type": "integer"
+          },
+          "average_daily_time": {
+            "type": "integer",
+            "description": "Average daily study time in seconds"
+          }
+        }
+      },
+      "LearningStreak": {
+        "type": "object",
+        "properties": {
+          "current_streak": {
+            "type": "integer",
+            "description": "Current consecutive days of learning"
+          },
+          "longest_streak": {
+            "type": "integer",
+            "description": "Longest consecutive days of learning"
+          },
+          "last_activity_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "streak_active": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

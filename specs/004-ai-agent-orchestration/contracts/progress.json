@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProgressOutput",
+  "description": "Output schema for Progress agent",
+  "type": "object",
+  "required": ["events_recorded", "user_progress"],
+  "properties": {
+    "events_recorded": { "type": "integer", "minimum": 0 },
+    "user_progress": {
+      "type": "object",
+      "required": ["documents_studied", "total_quiz_score", "topics_mastered", "areas_needing_review"],
+      "properties": {
+        "documents_studied": { "type": "integer" },
+        "total_quiz_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "topics_mastered": { "type": "array", "items": { "type": "string" } },
+        "areas_needing_review": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

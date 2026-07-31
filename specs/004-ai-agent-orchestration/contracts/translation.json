@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TranslationOutput",
+  "description": "Output schema for Translation agent",
+  "type": "object",
+  "required": ["translations", "source_language", "target_language"],
+  "properties": {
+    "translations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "translated_text", "source_chunk_ids"],
+        "properties": {
+          "node_id": { "type": "string" },
+          "translated_text": { "type": "string" },
+          "source_chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "source_language": { "type": "string" },
+    "target_language": { "type": "string" }
+  }
+}

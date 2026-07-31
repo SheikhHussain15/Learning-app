@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DiagramOutput",
+  "description": "Output schema for Diagram agent",
+  "type": "object",
+  "required": ["diagrams"],
+  "properties": {
+    "diagrams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["diagram_type", "diagram_data", "description", "source_chunk_ids"],
+        "properties": {
+          "diagram_type": { "type": "string", "enum": ["mermaid", "excalidraw"] },
+          "diagram_data": { "type": "string" },
+          "description": { "type": "string" },
+          "source_chunk_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Diagram API",
+    "version": "1.0.0",
+    "description": "API for Diagram Viewer endpoints"
+  },
+  "paths": {
+    "/diagrams/{documentId}": {
+      "get": {
+        "summary": "Get all diagrams for document",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of diagrams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Diagram"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diagrams/{diagramId}": {
+      "get": {
+        "summary": "Get diagram details",
+        "parameters": [
+          {
+            "name": "diagramId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagram details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Diagram"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diagrams/{diagramId}/render": {
+      "get": {
+        "summary": "Get diagram render data",
+        "parameters": [
+          {
+            "name": "diagramId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["mermaid", "svg", "json"],
+              "default": "mermaid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagram render data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagramRenderData"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Diagram": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "diagram_type": {
+            "type": "string",
+            "enum": ["flowchart", "mind_map", "timeline", "concept_map", "sequence", "class", "state", "er"]
+          },
+          "content": {
+            "type": "object",
+            "description": "Structured diagram data"
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "References to source document chunks"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DiagramRenderData": {
+        "type": "object",
+        "properties": {
+          "diagram_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["mermaid", "svg", "json"]
+          },
+          "data": {
+            "type": "string",
+            "description": "Render data (Mermaid syntax, SVG, or JSON)"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              },
+              "node_count": {
+                "type": "integer"
+              },
+              "edge_count": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
