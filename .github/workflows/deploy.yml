@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 10
     environment: staging
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run database migrations
         run: |
           cd app/backend
@@ -57,7 +57,7 @@ jobs:
     environment: production
     needs: [deploy-staging]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run database migrations
         run: |
           cd app/backend
