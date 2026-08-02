@@ -64,6 +64,7 @@ class DiagramAgent(ProductionAgent):
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
                 temperature=0.3,
+                max_tokens=2000,
             )
 
             result = json.loads(response.choices[0].message.content)

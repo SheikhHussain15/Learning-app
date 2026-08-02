@@ -46,8 +46,8 @@ def test_search_case_insensitive(db, sample_documents):
     assert results[0].title == "Test Document 3"
 
 
-def test_search_via_api_endpoint(client, sample_documents):
-    response = client.get("/api/v1/document/list?owner_id=test-user-1&q=Document+2")
+def test_search_via_api_endpoint(client, auth_headers, sample_documents):
+    response = client.get("/api/v1/document/list?q=Document+2", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1

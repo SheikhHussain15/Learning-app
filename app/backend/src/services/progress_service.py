@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from src.core.database import SessionLocal
 from src.models.progress_event import EventType, ProgressEvent
@@ -16,6 +17,7 @@ def record_event(
     db = SessionLocal()
     try:
         event = ProgressEvent(
+            id=str(uuid.uuid4()),
             user_id=user_id,
             event_type=EventType(event_type),
             document_id=document_id,

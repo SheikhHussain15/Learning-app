@@ -138,6 +138,18 @@ async def test_execute_pipeline_partial_failure(
         "error": {"code": "PROCESSING_ERROR", "message": "Failed"},
     }
 
+    succeeded_run = MagicMock()
+    succeeded_run.id = "run-ok-1"
+    succeeded_run.status = AgentStatus.succeeded
+    succeeded_run.agent_type = AgentType.knowledge_structuring
+    succeeded_run.duration_ms = 120
+    succeeded_run.response_envelope = {
+        "status": "success",
+        "output": {"nodes": [{"node_id": "n1", "title": "Chapter"}]},
+        "source_refs": [],
+        "usage": {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
+    }
+
     request = PipelineRequest(
         document_id="doc-test-1",
         user_id="user-1",
@@ -146,7 +158,13 @@ async def test_execute_pipeline_partial_failure(
 
     mock_cache.return_value = None
     mock_get_orch.return_value = mock_orchestrator
-    mock_orchestrator.dispatch.return_value = failed_run
+
+    async def fake_dispatch(agent_type, envelope, db_session=None):
+        if agent_type == AgentType.document_processing:
+            return failed_run
+        return succeeded_run
+
+    mock_orchestrator.dispatch.side_effect = fake_dispatch
 
     from src.services.pipeline_service import execute_pipeline
     result = await execute_pipeline(request)

@@ -4,7 +4,7 @@ import time
 import uuid
 
 from src.core.database import SessionLocal
-from src.models.agent_run import AgentType
+from src.models.agent_run import AgentStatus, AgentType
 from src.orchestrator.orchestrator import get_orchestrator
 from src.orchestrator.pipeline import get_execution_order
 from src.schemas.agent import RequestContext, RequestEnvelope, RetrievedChunk
@@ -110,16 +110,21 @@ async def execute_pipeline(request: PipelineRequest) -> PipelineResponse:
                     failed_agents.append(agent_type.value)
                 else:
                     agent_run, response = result
+                    response_data = response or {}
+                    run_failed = agent_run.status != AgentStatus.succeeded or response_data.get("status") == "error"
                     agent_results[agent_type.value] = AgentRunResponse(
                         id=agent_run.id,
                         status=agent_run.status.value,
                         agent_type=agent_type,
-                        response_envelope=response.output if response else None,
+                        response_envelope=response_data.get("output"),
                         duration_ms=agent_run.duration_ms,
                     )
 
-                    if response and response.status == "success":
-                        all_output_data[agent_type.value] = response.output
+                    if run_failed:
+                        failed_agents.append(agent_type.value)
+                    else:
+                        output_data = response_data.get("output", {})
+                        all_output_data[agent_type.value] = output_data
                         completed_agents.append(agent_type)
 
                         if not request.force_reprocess:
@@ -127,9 +132,9 @@ async def execute_pipeline(request: PipelineRequest) -> PipelineResponse:
                                 document_id=request.document_id,
                                 agent_type=agent_type.value,
                                 agent_params=request.agent_params.get(agent_type.value, {}),
-                                output_data=response.output,
-                                source_refs=[ref.model_dump() for ref in response.source_refs],
-                                token_usage=response.usage.model_dump() if response.usage else {},
+                                output_data=output_data,
+                                source_refs=response_data.get("source_refs", []),
+                                token_usage=response_data.get("usage", {}),
                             )
 
     duration_ms = int((time.time() - start_time) * 1000)
@@ -165,8 +170,18 @@ async def _execute_agent(
     trace_id = str(uuid.uuid4())
 
     context = None
-    chunks = context_data.get("knowledge_structuring", {}).get("nodes", [])
-    if not chunks:
+    ks_nodes = context_data.get("knowledge_structuring", {}).get("nodes", [])
+    if ks_nodes:
+        chunks = [
+            RetrievedChunk(
+                chunk_id=n.get("node_id", ""),
+                text=n.get("content", ""),
+                score=0.95,
+                metadata={"node_type": n.get("node_type"), "title": n.get("title")},
+            )
+            for n in ks_nodes[:20]
+        ]
+    else:
         chunks_raw = context_data.get("document_processing", {}).get("chunks", [])
         chunks = [
             RetrievedChunk(

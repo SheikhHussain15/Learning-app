@@ -68,6 +68,14 @@ def sample_user(db):
 
 
 @pytest.fixture
+def auth_headers(sample_user):
+    from src.core.auth import create_access_token
+
+    token = create_access_token(data={"sub": sample_user.id})
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
 def sample_documents(db, sample_user):
     docs = []
     for i in range(5):

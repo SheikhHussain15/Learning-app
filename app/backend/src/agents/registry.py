@@ -1,4 +1,5 @@
-from agents import OpenAIProvider
+from dataclasses import dataclass
+
 from src.core import config
 from src.models.agent_run import AgentType
 from src.schemas.agent import ModelConfig
@@ -92,8 +93,14 @@ def get_all_model_configs() -> list[ModelConfig]:
     return list(MODEL_REGISTRY.values())
 
 
-def create_openai_provider() -> OpenAIProvider:
-    return OpenAIProvider(
+@dataclass
+class LLMProvider:
+    api_key: str
+    base_url: str
+
+
+def create_openai_provider() -> LLMProvider:
+    return LLMProvider(
         api_key=config.OPENROUTER_API_KEY,
         base_url=config.OPENROUTER_BASE_URL,
     )

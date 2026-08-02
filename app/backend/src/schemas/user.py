@@ -39,3 +39,10 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class AuthResponse(BaseModel):
+    token: str
+    access_token: str | None = None
+    token_type: str = "bearer"
+    user: UserPublic

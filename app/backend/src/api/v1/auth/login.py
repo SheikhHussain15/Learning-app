@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from src.core.auth import create_access_token
 from src.core.deps import get_db
-from src.schemas.user import TokenResponse
+from src.schemas.user import AuthResponse, UserPublic
 from src.services.auth_service import authenticate_user
 
 router = APIRouter()
@@ -15,10 +15,14 @@ class LoginRequest(BaseModel):
     password: str
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=AuthResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     user = authenticate_user(db, body.email, body.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Incorrect email or password")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     token = create_access_token(data={"sub": user.id, "user_id": user.id, "email": user.email})
-    return TokenResponse(access_token=token)
+    return AuthResponse(
+        token=token,
+        access_token=token,
+        user=UserPublic.model_validate(user),
+    )
